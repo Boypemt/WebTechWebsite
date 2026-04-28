@@ -1,0 +1,323 @@
+﻿[
+  {
+    "id": 1,
+    "name": "Classic Leather Wallet",
+    "category": "Accessories",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 29.99,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 2,
+    "name": "Wireless Noise-Cancelling Headphones",
+    "category": "Electronics",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 149.99,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 3,
+    "name": "Slim Fit Denim Jacket",
+    "category": "Clothing",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 49.99,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 4,
+    "name": "Stainless Steel Water Bottle",
+    "category": "Outdoors",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 34.99,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 5,
+    "name": "Ergonomic Office Chair",
+    "category": "Furniture",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 249.99,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 6,
+    "name": "Ceramic Pour-Over Coffee Set",
+    "category": "Kitchen",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 45.00,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 7,
+    "name": "Running Shoes Pro",
+    "category": "Footwear",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 79.99,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 8,
+    "name": "Portable Bluetooth Speaker",
+    "category": "Electronics",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 59.99,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 9,
+    "name": "Organic Cotton T-Shirt",
+    "category": "Clothing",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 19.99,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 10,
+    "name": "Smart Watch Series X",
+    "category": "Electronics",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 199.99,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 11,
+    "name": "Yoga Mat Premium",
+    "category": "Sports",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 38.99,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 12,
+    "name": "Wooden Cutting Board Set",
+    "category": "Kitchen",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 44.99,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 13,
+    "name": "Travel Backpack 40L",
+    "category": "Bags",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 89.99,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 14,
+    "name": "Scented Soy Candle Set",
+    "category": "Home Decor",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 28.00,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 15,
+    "name": "Mechanical Keyboard TKL",
+    "category": "Electronics",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 119.99,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 16,
+    "name": "Linen Throw Blanket",
+    "category": "Home Decor",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 42.00,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 17,
+    "name": "Sunglasses Polarized UV400",
+    "category": "Accessories",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 39.99,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 18,
+    "name": "Vitamin C Serum 30ml",
+    "category": "Beauty",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 32.00,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 19,
+    "name": "Adjustable Dumbbell Set",
+    "category": "Sports",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 189.99,
+      "max": null
+    },
+    "action": "view-options"
+  },
+  {
+    "id": 20,
+    "name": "Minimalist Desk Lamp",
+    "category": "Furniture",
+    "image": "https://dummyimage.com/450x300/dee2e6/6c757d.jpg",
+    "badge": null,
+    "rating": null,
+    "reviewCount": 0,
+    "price": {
+      "type": "fixed",
+      "original": null,
+      "current": 49.99,
+      "max": null
+    },
+    "action": "view-options"
+  }
+]
+
