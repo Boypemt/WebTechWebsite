@@ -1,0 +1,11 @@
+# Claude Design exports
+# Drop exported HTML files from claude.ai/design here.
+# Ignored from git — design files are workflow references, not source code.
+design/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/

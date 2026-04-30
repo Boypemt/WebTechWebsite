@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "id": 1,
     "name": "Classic Leather Wallet",
@@ -7,12 +7,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 29.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 29.99, "max": null },
     "action": "view-options"
   },
   {
@@ -23,12 +18,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 149.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 149.99, "max": null },
     "action": "view-options"
   },
   {
@@ -39,12 +29,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 49.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 49.99, "max": null },
     "action": "view-options"
   },
   {
@@ -55,12 +40,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 34.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 34.99, "max": null },
     "action": "view-options"
   },
   {
@@ -71,12 +51,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 249.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 249.99, "max": null },
     "action": "view-options"
   },
   {
@@ -87,12 +62,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 45.00,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 45.00, "max": null },
     "action": "view-options"
   },
   {
@@ -103,12 +73,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 79.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 79.99, "max": null },
     "action": "view-options"
   },
   {
@@ -119,12 +84,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 59.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 59.99, "max": null },
     "action": "view-options"
   },
   {
@@ -135,12 +95,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 19.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 19.99, "max": null },
     "action": "view-options"
   },
   {
@@ -151,12 +106,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 199.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 199.99, "max": null },
     "action": "view-options"
   },
   {
@@ -167,12 +117,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 38.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 38.99, "max": null },
     "action": "view-options"
   },
   {
@@ -183,12 +128,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 44.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 44.99, "max": null },
     "action": "view-options"
   },
   {
@@ -199,12 +139,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 89.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 89.99, "max": null },
     "action": "view-options"
   },
   {
@@ -215,12 +150,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 28.00,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 28.00, "max": null },
     "action": "view-options"
   },
   {
@@ -231,12 +161,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 119.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 119.99, "max": null },
     "action": "view-options"
   },
   {
@@ -247,12 +172,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 42.00,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 42.00, "max": null },
     "action": "view-options"
   },
   {
@@ -263,12 +183,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 39.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 39.99, "max": null },
     "action": "view-options"
   },
   {
@@ -279,12 +194,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 32.00,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 32.00, "max": null },
     "action": "view-options"
   },
   {
@@ -295,12 +205,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 189.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 189.99, "max": null },
     "action": "view-options"
   },
   {
@@ -311,13 +216,7 @@
     "badge": null,
     "rating": null,
     "reviewCount": 0,
-    "price": {
-      "type": "fixed",
-      "original": null,
-      "current": 49.99,
-      "max": null
-    },
+    "price": { "type": "fixed", "original": null, "current": 49.99, "max": null },
     "action": "view-options"
   }
 ]
-
