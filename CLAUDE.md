@@ -226,26 +226,67 @@ Loaded before every page script. Defines globals used by all three pages.
 | `renderNotFound()` | Shows friendly message if id missing or not found |
 | `addToCart(p, qty)` | `.find()` → increment qty or push new item → `saveToLocalStorage()` + `updateCartBadge()` |
 
-## Planned Backend Structure (Express + SQLite)
+## Backend CORS Whitelist
+Configured in `server/app.js` via the `cors` package. Whitelisted origins:
+- `http://localhost:5500` — VS Code Live Server
+- `http://127.0.0.1:5500` — Live Server (IP variant)
+- `http://localhost:3000` — future: frontend served from backend
+
+Allowed methods: `GET POST PUT DELETE OPTIONS`
+
+## Backend Structure (Express + Node.js)
 ```
 /server
-├── index.js            # Express entry point
-├── db.js               # SQLite connection & init
+├── index.js                  # Entry point — binds app to port 3000
+├── app.js                    # Express app, middleware, routes, error handlers
 ├── routes/
-│   └── products.js     # GET /api/products, GET /api/products/:id
-└── seed.js             # Load products.json → SQLite
+│   └── products.js           # Mounts GET /api/products, GET /api/products/:id
+├── controllers/
+│   └── productController.js  # HTTP layer — reads req, calls service, writes res
+├── services/
+│   └── productService.js     # Business logic — reads ../products.json, filters
+└── utils/
+    └── fileReader.js         # Async JSON file reader (fs.promises)
 ```
 
-## Planned API Endpoints
+### Pattern: Controller → Route → Service
+| Layer | File | Responsibility |
+|-------|------|----------------|
+| Route | `routes/products.js` | URL → handler mapping only |
+| Controller | `controllers/productController.js` | HTTP: parse req, call service, send res |
+| Service | `services/productService.js` | Data: read products.json, filter, find |
+| Utility | `utils/fileReader.js` | fs.promises wrapper for JSON files |
+
+### Start commands
+```bash
+npm start       # node server/index.js   (production)
+npm run dev     # nodemon server/index.js (development — auto-restarts on change)
+```
+
+## Live API Endpoints
+All responses use a consistent envelope shape:
+```json
+{ "success": true, "count": 20, "data": [ ... ] }   ← list
+{ "success": true, "data": { ... } }                  ← single
+{ "success": false, "error": "Product not found" }    ← error
+```
+
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/products` | List all products (filter by category, badge) |
-| GET | `/api/products/:id` | Single product |
+| GET | `/api/health` | Server health check |
+| GET | `/api/products` | All products (optional `?category=` / `?badge=` filters) |
+| GET | `/api/products/:id` | Single product by numeric id |
+
+Frontend fetch targets:
+- `js/scripts.js` → `http://localhost:3000/api/products` → uses `responseJson.data` (array)
+- `js/product.js` → `http://localhost:3000/api/products/:id` → uses `responseJson.data` (object)
+
+## Planned API Endpoints (future)
+| Method | Path | Description |
+|--------|------|-------------|
 | POST | `/api/products` | Create product |
 | PUT | `/api/products/:id` | Update product |
 | DELETE | `/api/products/:id` | Delete product |
-| POST | `/api/cart` | Add item to cart |
-| GET | `/api/cart` | Get cart items |
 
 ## Claude Design Workflow
 1. Build a mockup at **claude.ai/design**

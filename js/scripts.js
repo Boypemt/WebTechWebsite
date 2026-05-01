@@ -54,7 +54,7 @@ var selectedCategory = 'All';
 // One block = one clear list of everything that runs on page load.
 // -------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', function () {
-    requestProducts('products.json');
+    requestProducts();
     setupSearch();
     loadCart();  // shared — defined in cart-utils.js
 
@@ -92,26 +92,27 @@ document.addEventListener('DOMContentLoaded', function () {
 // If fetch fails (e.g. page opened via file://), shows an error
 // card telling the user to use a local server.
 // -------------------------------------------------------------
-function requestProducts(path) {
-    fetch(path)
+function requestProducts() {
+    // Fetch from the Express backend instead of the static JSON file.
+    // The API returns { success, count, data } — products are in .data.
+    fetch('http://localhost:3000/api/products')
         .then(function (response) {
-            // Parse the HTTP response body into a JS array
             return response.json();
         })
-        .then(function (products) {
-            // Store every product so filterProducts() can read them later
-            allProducts = products;
+        .then(function (responseJson) {
+            // Unwrap the envelope — data holds the products array
+            allProducts = responseJson.data;
             buildCategoryDropdown(allProducts);
             renderUI(allProducts);
         })
         .catch(function (error) {
-            console.error('Could not load products.json:', error);
+            console.error('Could not reach the API server:', error);
             document.getElementById('product-grid').innerHTML =
                 '<div class="col-12 text-center py-5">' +
                     '<i class="bi-exclamation-circle fs-1 text-danger d-block mb-3"></i>' +
-                    '<p class="fw-bold">Could not load products.json</p>' +
-                    '<p class="text-muted small">Open this page through a local server<br>' +
-                    '(e.g. VS Code Live Server or <code>npx serve .</code>)</p>' +
+                    '<p class="fw-bold">Could not reach the product API</p>' +
+                    '<p class="text-muted small">Make sure the backend is running:<br>' +
+                    '<code>npm run dev</code> in the project folder</p>' +
                 '</div>';
         });
 }

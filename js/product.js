@@ -64,32 +64,36 @@ function requestProduct() {
         return;
     }
 
-    fetch('products.json')
+    // Fetch the single product directly from the API by id.
+    // The API returns { success, data } — the product object is in .data.
+    // A 404 response means the id exists but matches no product.
+    fetch('http://localhost:3000/api/products/' + productId)
         .then(function (response) {
+            // response.ok is false for 4xx/5xx status codes.
+            // A 404 from the API means the product wasn't found — show
+            // the not-found state rather than trying to parse bad data.
+            if (!response.ok) {
+                renderNotFound();
+                return null;
+            }
             return response.json();
         })
-        .then(function (products) {
-            // .find() returns the matching item or undefined
-            product = products.find(function (p) {
-                return p.id === productId;
-            });
+        .then(function (responseJson) {
+            if (!responseJson) return;  // already handled by !response.ok above
 
-            if (product) {
-                renderProduct(product);
-            } else {
-                renderNotFound();
-            }
+            // Unwrap the envelope — data holds the single product object
+            product = responseJson.data;
+            renderProduct(product);
         })
         .catch(function () {
-            // fetch() fails when opened via file:// (no server)
+            // Network error — backend is likely not running
             var container = document.getElementById('product-detail');
             container.innerHTML =
                 '<div class="col-12">' +
                     '<div class="alert alert-warning" role="alert">' +
-                        '<h5 class="fw-bolder">Could not load product data</h5>' +
-                        '<p class="mb-0">Please run the site through a local server ' +
-                        '(<code>npx serve .</code> or VS Code Live Server). ' +
-                        'The <code>fetch()</code> API does not work on <code>file://</code> URLs.</p>' +
+                        '<h5 class="fw-bolder">Could not reach the product API</h5>' +
+                        '<p class="mb-0">Make sure the backend is running: ' +
+                        '<code>npm run dev</code></p>' +
                     '</div>' +
                 '</div>';
         });

@@ -3,6 +3,9 @@
 # Ignored from git — design files are workflow references, not source code.
 design/
 
+# Node
+node_modules/
+
 # OS files
 .DS_Store
 Thumbs.db
