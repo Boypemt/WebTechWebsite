@@ -7,26 +7,26 @@
 // =============================================================
 // DATA FLOW OVERVIEW
 //
-//  Browser              requestProducts()     fetch()        products.json
-//    |                        |                  |                |
-//    |-- DOMContentLoaded --> |                  |                |
-//    |   setupSearch()        |                  |                |
-//    |   loadCart() ←──── cart-utils.js          |                |
-//    |   #catalog delegation  |                  |                |
-//    |                        |-- fetch(path) -> |                |
-//    |                        |                  |-- HTTP GET --> |
-//    |                        |                  |<-- JSON ------ |
-//    |                        |<-- res.json() ---|                |
-//    |            allProducts = products          |                |
-//    |          buildCategoryDropdown(products)   |                |
-//    |                   renderUI(allProducts)    |                |
-//    |<-- DOM updated --------|                  |                |
-//    |                        |                  |                |
-//    |-- user clicks 🔍 or presses Enter         |                |
-//    |   OR selects a category → searchProducts()                 |
-//    |         filterProducts(searchTerm, category)               |
-//    |                   renderUI(filtered)       |                |
-//    |<-- DOM updated --------|                  |                |
+// PAGE LOAD
+//   DOMContentLoaded → requestProducts()
+//     └── GET /api/products          (no filter — fetch all)
+//           └── allProducts = data   (stores server response)
+//                 ├── buildCategoryDropdown()
+//                 └── renderUI(allProducts)
+//
+// CATEGORY CLICK (server-driven round trip)
+//   user clicks dropdown item → fetchProductsByCategory(category)
+//     └── GET /api/products?category=<name>   (or no param for "All")
+//           └── console.log(url)              (envelope visible in DevTools)
+//                 └── allProducts = data       (replaces previous server result)
+//                       └── searchProducts()   (re-applies any active search)
+//                             └── filterProducts(searchTerm)  (client-side name filter)
+//                                   └── renderUI(filtered)
+//
+// SEARCH (client-side over last server result)
+//   user clicks 🔍 or presses Enter → searchProducts()
+//     └── filterProducts(searchTerm)   (filters allProducts in the browser)
+//           └── renderUI(filtered)
 // =============================================================
 
 
@@ -119,36 +119,36 @@ function requestProducts() {
 
 
 // -------------------------------------------------------------
-// filterProducts(searchTerm, category)
-// Returns a filtered subset of allProducts matching BOTH:
-//   1. searchTerm — case-insensitive partial match on product.name
-//   2. category   — exact match, or 'All' to skip the check
+// filterProducts(searchTerm)
+// Filters allProducts by name only — client-side, runs instantly.
+// Category filtering has moved to the server (fetchProductsByCategory).
 //
-// Uses Array.filter() — keeps only items where the callback is true.
-// If searchTerm is '', indexOf('') === 0, so every name matches.
+// allProducts always holds whatever the server last returned for the
+// current category, so this search operates over the correct subset:
+//   - "All Categories" selected → allProducts has all 20
+//   - "Electronics" selected    → allProducts has 4 electronics only
+//
+// If searchTerm is '' every name matches (indexOf('') === 0),
+// so the full server result is returned unchanged.
 // -------------------------------------------------------------
-function filterProducts(searchTerm, category) {
-    // Normalise once so we don't repeat .toLowerCase() per product
+function filterProducts(searchTerm) {
     var lowerTerm = searchTerm.toLowerCase();
 
     return allProducts.filter(function (product) {
         // Partial, case-insensitive match anywhere in the name
-        var nameMatches = product.name.toLowerCase().indexOf(lowerTerm) !== -1;
-
-        // 'All' skips the category check (short-circuit)
-        var categoryMatches = (category === 'All') || (product.category === category);
-
-        return nameMatches && categoryMatches;
+        return product.name.toLowerCase().indexOf(lowerTerm) !== -1;
     });
 }
 
 
 // -------------------------------------------------------------
 // searchProducts()
-// Called when the user clicks 🔍, presses Enter, selects a
-// category, or clears the search input.
-// Reads the current input value and selectedCategory, then
-// re-renders the grid with the filtered results.
+// Called when the user clicks 🔍, presses Enter, or clears the
+// search input. Also called by fetchProductsByCategory() after a
+// new server result arrives, to re-apply any active search term.
+//
+// Category is no longer a parameter here — it was already applied
+// server-side before allProducts was updated.
 // -------------------------------------------------------------
 function searchProducts() {
     var searchTerm = document.getElementById('search-input').value.trim();
@@ -157,7 +157,8 @@ function searchProducts() {
     var clearBtn = document.getElementById('search-clear');
     clearBtn.style.display = searchTerm.length > 0 ? 'inline-block' : 'none';
 
-    var results = filterProducts(searchTerm, selectedCategory);
+    // Filter allProducts (current server result) by name only
+    var results = filterProducts(searchTerm);
     renderUI(results);
 }
 
@@ -275,9 +276,68 @@ function buildCategoryDropdown(products) {
         });
         target.classList.add('active');
 
-        // 4. Re-filter the grid immediately
-        searchProducts();
+        // 4. Fetch filtered products from the server (real round trip)
+        fetchProductsByCategory(selectedCategory);
     });
+}
+
+
+// -------------------------------------------------------------
+// fetchProductsByCategory(category)
+// Makes a GET request to the backend with the chosen category as
+// a query param. This is the server-driven round trip that replaces
+// the old client-side category filter.
+//
+// URL construction:
+//   'All'          → /api/products            (no param → server returns all)
+//   'Electronics'  → /api/products?category=Electronics
+//
+// After the response arrives, allProducts is replaced with the
+// server result, then searchProducts() re-applies any active
+// search term over the new subset — client-side, instantly.
+//
+// The outgoing URL is logged on every click so the envelope is
+// visible in the browser DevTools console.
+// -------------------------------------------------------------
+function fetchProductsByCategory(category) {
+    // Build URL — omit query param entirely for "All" so the server
+    // returns everything without any filtering.
+    var url = 'http://localhost:3000/api/products';
+    if (category !== 'All') {
+        // encodeURIComponent handles spaces and special chars safely
+        url += '?category=' + encodeURIComponent(category);
+    }
+
+    // Log the full outgoing URL so every round trip is visible
+    console.log('[Category fetch] GET', url);
+
+    fetch(url)
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (responseJson) {
+            // Gatekeeper rejection (e.g. 400 invalid category)
+            if (!responseJson.success) {
+                console.warn('[Category fetch] API rejected request:', responseJson.error);
+                return;
+            }
+
+            // Replace allProducts with the server-filtered subset.
+            // searchProducts() then narrows it further by name if
+            // the user has typed something in the search box.
+            allProducts = responseJson.data;
+            searchProducts();
+        })
+        .catch(function (error) {
+            console.error('Could not reach the API server:', error);
+            document.getElementById('product-grid').innerHTML =
+                '<div class="col-12 text-center py-5">' +
+                    '<i class="bi-exclamation-circle fs-1 text-danger d-block mb-3"></i>' +
+                    '<p class="fw-bold">Could not reach the product API</p>' +
+                    '<p class="text-muted small">Make sure the backend is running:<br>' +
+                    '<code>npm run dev</code> in the project folder</p>' +
+                '</div>';
+        });
 }
 
 

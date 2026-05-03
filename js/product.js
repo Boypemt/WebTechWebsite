@@ -67,8 +67,12 @@ function requestProduct() {
     // Fetch the single product directly from the API by id.
     // The API returns { success, data } — the product object is in .data.
     // A 404 response means the id exists but matches no product.
-    fetch('http://localhost:3000/api/products/' + productId)
+    var url = 'http://localhost:3000/api/products/' + productId;
+    console.log('[product.js] Fetching:', url);
+
+    fetch(url)
         .then(function (response) {
+            console.log('[product.js] Response status:', response.status, response.ok);
             // response.ok is false for 4xx/5xx status codes.
             // A 404 from the API means the product wasn't found — show
             // the not-found state rather than trying to parse bad data.
@@ -81,19 +85,21 @@ function requestProduct() {
         .then(function (responseJson) {
             if (!responseJson) return;  // already handled by !response.ok above
 
+            console.log('[product.js] Data received:', responseJson);
             // Unwrap the envelope — data holds the single product object
             product = responseJson.data;
             renderProduct(product);
         })
-        .catch(function () {
-            // Network error — backend is likely not running
+        .catch(function (err) {
+            // Network error (ECONNREFUSED, CORS block, etc.) — backend is likely not running
+            console.error('[product.js] Fetch error:', err);
             var container = document.getElementById('product-detail');
             container.innerHTML =
                 '<div class="col-12">' +
                     '<div class="alert alert-warning" role="alert">' +
                         '<h5 class="fw-bolder">Could not reach the product API</h5>' +
                         '<p class="mb-0">Make sure the backend is running: ' +
-                        '<code>npm run dev</code></p>' +
+                        '<code>npm run dev</code> — then refresh this page.</p>' +
                     '</div>' +
                 '</div>';
         });

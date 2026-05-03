@@ -2,14 +2,14 @@
 
 ## Project Overview
 E-commerce shop homepage built on the **Start Bootstrap Shop Homepage** template.
-Full-stack project: HTML/CSS/JS frontend + **Node.js/Express** backend + **SQLite** database (backend not yet built).
+Full-stack project: HTML/CSS/JS frontend + **Node.js/Express** backend (live) + **SQLite** database (planned).
 
 ## Tech Stack
 | Layer | Technology |
 |-------|-----------|
 | Frontend | HTML5, CSS3, Vanilla JavaScript |
 | Styling | Bootstrap 5.2.3, Bootstrap Icons 1.5.0 |
-| Backend | Node.js, Express (planned) |
+| Backend | Node.js, Express (live on port 3000) |
 | Database | SQLite via `better-sqlite3` (planned) |
 
 ---
@@ -30,15 +30,17 @@ Full-stack project: HTML/CSS/JS frontend + **Node.js/Express** backend + **SQLit
 | `css/styles.css` | Unchanged | Bootstrap 5.2.3 compiled CSS + template overrides (10 825 lines — do not edit manually; use Bootstrap utility classes) |
 
 ### Features Implemented
-- **Dynamic product grid** — `products.json` fetched on load, rendered into `#product-grid` inside `#catalog`
-- **Search by name** — fires on spyglass button click or Enter key (not instant/keystroke), case-insensitive partial match against `product.name`
-- **Category filter** — custom Bootstrap dropdown (always drops down via `data-bs-flip="false"`, scrollable at `max-height:260px`), populated dynamically from product data
-- **Combined filter** — search + category both active at once via `filterProducts(searchTerm, category)`
+- **Dynamic product grid** — fetched from `GET /api/products` on load, rendered into `#product-grid` inside `#catalog`
+- **Search by name** — fires on spyglass button click or Enter key (not instant/keystroke), case-insensitive partial match against `product.name`, client-side over last server result
+- **Category filter** — server-driven round trip on every click; `fetchProductsByCategory()` sends `GET /api/products?category=<name>`; "All Categories" omits the param; outgoing URL logged to console
+- **Category gatekeeper** — controller rejects empty string or >50-char category with 400; valid category with zero matches returns 200 with `data: []`
+- **Category filter case-insensitive** — `?category=electronics` matches "Electronics" on the server
+- **Combined filter** — category applied server-side first, search applied client-side over the result
 - **Clear button** — (×) appears when search has text, resets input and re-renders all
 - **Result status** — shows `"N products found"` below search bar when any filter is active
 - **Empty state** — shows a message when no products match
-- **Fetch error state** — shows a helpful error card if `products.json` fails to load (e.g. opened via `file://`)
-- **Product detail page** — "View options" links to `product.html?id=X`; detail page fetches product by id, shows image + info + qty selector + "Add to cart"
+- **API error state** — shows a helpful error card if the backend is unreachable
+- **Product detail page** — "View options" links to `product.html?id=X`; detail page fetches `GET /api/products/:id`, shows image + info + qty selector + "Add to cart"
 - **Cart system** — shared `localStorage` key `'cart'` across all pages; navbar badge updates live
 
 ### Search & Filter Section (index.html)
@@ -66,35 +68,32 @@ Full-stack project: HTML/CSS/JS frontend + **Node.js/Express** backend + **SQLit
 ### Module-level variables
 | Variable | Purpose |
 |----------|---------|
-| `allProducts` | Full array from `products.json`, set once on load |
+| `allProducts` | Last server response for current category — updated on each category click |
 | `selectedCategory` | Tracks active dropdown choice, default `'All'` |
 | `cart` | Array of cart-item objects, starts as `[]`, filled by `loadCart()` |
 
 ### Function map
 | Function | Role |
 |----------|------|
-| `requestProducts(path)` | `fetch()` → store `allProducts` → `buildCategoryDropdown()` → `renderUI()` |
-| `filterProducts(searchTerm, category)` | Returns filtered subset of `allProducts` using `.filter()` |
-| `searchProducts()` | Reads inputs, calls `filterProducts()`, calls `renderUI()` |
+| `requestProducts()` | Initial load only — `GET /api/products` → `buildCategoryDropdown()` → `renderUI()` |
+| `fetchProductsByCategory(category)` | Server round trip on category click — `GET /api/products?category=<name>` → updates `allProducts` → `searchProducts()` |
+| `filterProducts(searchTerm)` | Client-side name filter over `allProducts` (current server result) |
+| `searchProducts()` | Reads search input → `filterProducts(searchTerm)` → `renderUI()` |
 | `renderUI(products)` | Injects cards into `#product-grid`, handles empty state |
 | `setupSearch()` | Wires search button click, Enter key, and clear button |
-| `buildCategoryDropdown(products)` | Builds `<li><a>` items, handles click → updates label + highlight + triggers filter |
+| `buildCategoryDropdown(products)` | Builds `<li><a>` items once on load; click → `fetchProductsByCategory()` |
 | `updateSearchStatus(count)` | Shows/hides result count below search bar |
 | `buildProductCard(product)` | Returns Bootstrap card HTML string for one product |
 | `buildStars()` | Returns 5-star Bootstrap Icons HTML |
-| `formatPrice(price)` | Formats price by `price.type`: fixed / sale / range |
-| `addToCart(productID)` | `.find()` checks cart → increment qty or push new item → save + update UI |
-| `loadCart()` | On DOMContentLoaded: reads localStorage → parses JSON → calls `updateCartUI()` |
-| `saveToLocalStorage()` | `JSON.stringify(cart)` → `localStorage.setItem('cart', ...)` |
-| `updateCartUI()` | Sums all `item.quantity` via `.reduce()` → updates navbar badge |
+| `addToCart(productID)` | `.find()` checks cart → increment qty or push new item → save + update badge |
 
 ### Data flow
 ```
 DOMContentLoaded
-  ├── requestProducts('products.json')
-  │     └── fetch() → response.json()
-  │           └── allProducts = products
-  │                 ├── buildCategoryDropdown()   → populates #category-filter-menu
+  ├── requestProducts()
+  │     └── GET /api/products → responseJson.data
+  │           └── allProducts = data
+  │                 ├── buildCategoryDropdown()   → populates #category-filter-menu (once)
   │                 └── renderUI(allProducts)     → injects all 20 cards into #product-grid
   │
   ├── setupSearch()
@@ -102,20 +101,22 @@ DOMContentLoaded
   │                Enter on input     → searchProducts()
   │                #search-clear click → reset + searchProducts()
   │
-  └── loadCart()
-        └── localStorage.getItem('cart')
-              ├── null  → cart stays [], updateCartUI() shows 0
-              └── JSON  → cart = JSON.parse(data), updateCartUI() restores badge
+  └── loadCart()  ← cart-utils.js
+        └── localStorage → cart[] → updateCartBadge()
+
+user clicks category in dropdown
+  └── buildCategoryDropdown click handler
+        └── selectedCategory = value
+              └── fetchProductsByCategory(selectedCategory)
+                    └── GET /api/products?category=<name>  (or no param for "All")
+                          └── console.log(url)             ← visible in DevTools
+                                └── allProducts = responseJson.data
+                                      └── searchProducts() ← re-applies active search
 
 user clicks 🔍 or presses Enter
   └── searchProducts()
-        └── filterProducts(searchTerm, selectedCategory)
-              └── allProducts.filter(nameMatches && categoryMatches)
-                    └── renderUI(results)
-
-user selects category from dropdown
-  └── buildCategoryDropdown click handler
-        └── selectedCategory = value → searchProducts()
+        └── filterProducts(searchTerm)   ← client-side, over allProducts
+              └── renderUI(results)
 
 user clicks "Add to cart" button
   └── #catalog click (event delegation)
@@ -123,8 +124,8 @@ user clicks "Add to cart" button
               └── addToCart(productId)
                     ├── cart.find() → EXISTS   → item.quantity++
                     │             → NOT FOUND → allProducts.find() → cart.push({...})
-                    ├── saveToLocalStorage()
-                    └── updateCartUI()
+                    ├── saveToLocalStorage()   ← cart-utils.js
+                    └── updateCartBadge()      ← cart-utils.js
 ```
 
 ---
@@ -220,10 +221,10 @@ Loaded before every page script. Defines globals used by all three pages.
 ## js/product.js Architecture
 | Function | Role |
 |----------|------|
-| `requestProduct()` | Reads `?id` from URL, `fetch('products.json')`, finds product by id |
+| `requestProduct()` | Reads `?id` from URL → `GET /api/products/:id` → `renderProduct()` or `renderNotFound()` |
 | `renderProduct(p)` | Injects image, name, category, price, qty selector, add-to-cart button into `#product-detail` |
 | `setupProductControls(p)` | Wires –/+ qty buttons and "Add to cart" click after render |
-| `renderNotFound()` | Shows friendly message if id missing or not found |
+| `renderNotFound()` | Shows friendly message if id missing or API returns 404 |
 | `addToCart(p, qty)` | `.find()` → increment qty or push new item → `saveToLocalStorage()` + `updateCartBadge()` |
 
 ## Backend CORS Whitelist
@@ -275,11 +276,22 @@ All responses use a consistent envelope shape:
 |--------|------|-------------|
 | GET | `/api/health` | Server health check |
 | GET | `/api/products` | All products (optional `?category=` / `?badge=` filters) |
+| GET | `/api/products?category=Electronics` | Category filter — case-insensitive, server-side |
 | GET | `/api/products/:id` | Single product by numeric id |
 
+### Category filter gatekeeper (controller)
+| Input | Behaviour |
+|-------|-----------|
+| `?category` missing | Returns all 20 products (200) |
+| `?category=Electronics` | Returns matching products, case-insensitive (200) |
+| `?category=` (empty string) | `{ success: false, error: "Invalid category" }` (400) |
+| `?category=` > 50 chars | Same 400 rejection |
+| Valid category, zero matches | `{ success: true, count: 0, data: [] }` (200) |
+
 Frontend fetch targets:
-- `js/scripts.js` → `http://localhost:3000/api/products` → uses `responseJson.data` (array)
-- `js/product.js` → `http://localhost:3000/api/products/:id` → uses `responseJson.data` (object)
+- `js/scripts.js` initial load → `GET /api/products` → `responseJson.data` (array)
+- `js/scripts.js` category click → `GET /api/products?category=<name>` → `responseJson.data` (array)
+- `js/product.js` → `GET /api/products/:id` → `responseJson.data` (object)
 
 ## Planned API Endpoints (future)
 | Method | Path | Description |
@@ -300,6 +312,7 @@ Frontend fetch targets:
 ---
 
 ## Developer Notes
+- Frontend served via `npx serve . -l 5500` — `serve.json` disables `cleanUrls` so `product.html?id=X` links work without redirect.
 - Run via **VS Code Live Server** or `npx serve .` — `fetch()` requires a server, not `file://`
 - All monetary values displayed with `.toFixed(2)` (2 decimal places)
 - `price.type` drives card rendering: `range` → "View options", others → "Add to cart"

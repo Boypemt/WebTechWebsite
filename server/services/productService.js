@@ -30,17 +30,29 @@ const PRODUCTS_FILE = path.join(__dirname, '..', '..', 'products.json');
 // Returns all products, optionally filtered by category and/or badge.
 // Both filters are applied together when both are provided.
 //
+// Category match is case-insensitive so ?category=electronics
+// matches products whose category is "Electronics".
+// The controller validates the raw query string before calling here,
+// so by the time this runs, category is either undefined or a valid
+// non-empty string under 50 chars.
+//
 // Query param examples:
 //   GET /api/products                      → all 20 products
-//   GET /api/products?category=Electronics → only Electronics
+//   GET /api/products?category=Electronics → 4 electronics products
+//   GET /api/products?category=electronics → same 4 (case-insensitive)
 //   GET /api/products?badge=Sale           → only sale items
 // -------------------------------------------------------------
 async function getAllProducts({ category, badge } = {}) {
     const products = await readJSON(PRODUCTS_FILE);
 
     return products.filter(function (p) {
-        const categoryMatch = !category || p.category === category;
-        const badgeMatch    = !badge    || p.badge    === badge;
+        // toLowerCase() on both sides makes the match case-insensitive.
+        // No category param → !category is true → every product passes.
+        const categoryMatch = !category ||
+            p.category.toLowerCase() === category.toLowerCase();
+
+        const badgeMatch = !badge || p.badge === badge;
+
         return categoryMatch && badgeMatch;
     });
 }

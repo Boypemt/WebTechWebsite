@@ -40,11 +40,29 @@ const productService = require('../services/productService');
 // GET /api/products?category=Electronics
 // GET /api/products?badge=Sale
 //
-// Passes optional query params to the service for filtering.
-// Always responds with the envelope — data is the products array.
+// GATEKEEPER — validates the category query param before the
+// service touches it. Three rules:
+//   1. category missing entirely  → pass undefined → service returns all
+//   2. category is ''             → 400 Bad Request (empty string is meaningless)
+//   3. category.length > 50       → 400 Bad Request (guard against abuse)
+//   4. category provided but zero matches → 200 with data:[] (not an error)
+//
+// Valid requests are forwarded to the service which does the
+// actual case-insensitive filter against products.json.
 // -------------------------------------------------------------
 async function listProducts(req, res) {
     const { category, badge } = req.query;
+
+    // Gatekeeper: reject malformed category values before hitting the service
+    if (category !== undefined) {
+        if (category === '' || category.length > 50) {
+            return res.status(400).json({
+                success: false,
+                error:   'Invalid category'
+            });
+        }
+    }
+
     const products = await productService.getAllProducts({ category, badge });
     res.json({
         success: true,
