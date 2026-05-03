@@ -312,8 +312,7 @@ Frontend fetch targets:
 ---
 
 ## Developer Notes
-- Frontend served via `npx serve . -l 5500` — `serve.json` disables `cleanUrls` so `product.html?id=X` links work without redirect.
-- Run via **VS Code Live Server** or `npx serve .` — `fetch()` requires a server, not `file://`
+- Run via **VS Code Live Server** (`Alt+L Alt+O` or click "Go Live" in status bar) — `fetch()` requires a server, not `file://`
 - All monetary values displayed with `.toFixed(2)` (2 decimal places)
 - `price.type` drives card rendering: `range` → "View options", others → "Add to cart"
 - Images use `dummyimage.com` placeholders — swap with real URLs or CDN paths
