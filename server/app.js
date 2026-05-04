@@ -13,9 +13,13 @@
  * Used by: index.js
  */
 
+// Load .env variables (JWT_SECRET, etc.) into process.env before anything else
+require('dotenv').config();
+
 const express       = require('express');
 const cors          = require('cors');
 const productRoutes = require('./routes/products');
+const authRoutes    = require('./routes/auth');
 
 const app = express();
 
@@ -70,6 +74,10 @@ app.get('/api/health', function (req, res) {
 
 // Product endpoints
 app.use('/api/products', productRoutes);
+
+// Authentication endpoints
+// POST /api/login — receive email + password, return JWT on success
+app.use('/api/login', authRoutes);
 
 
 // -------------------------------------------------------------

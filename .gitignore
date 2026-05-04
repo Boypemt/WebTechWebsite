@@ -6,6 +6,9 @@ design/
 # Node
 node_modules/
 
+# Environment variables — never commit secrets
+.env
+
 # OS files
 .DS_Store
 Thumbs.db

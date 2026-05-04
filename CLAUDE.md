@@ -27,6 +27,8 @@ Full-stack project: HTML/CSS/JS frontend + **Node.js/Express** backend (live) + 
 | `js/scripts.js` | Live | index.html JS — fetch, filter, render, addToCart |
 | `js/product.js` | Live | product.html JS — URL param read, fetch, render, addToCart |
 | `js/cart.js` | Live | cart.html JS — render cart items, qty controls, order summary |
+| `login.html` | Live | Login page — email/password form, saves JWT + user to localStorage on success |
+| `js/login.js` | Live | login.html JS — fetch POST /api/login, saveSession(), redirect to index.html |
 | `css/styles.css` | Unchanged | Bootstrap 5.2.3 compiled CSS + template overrides (10 825 lines — do not edit manually; use Bootstrap utility classes) |
 
 ### Features Implemented
@@ -42,6 +44,7 @@ Full-stack project: HTML/CSS/JS frontend + **Node.js/Express** backend (live) + 
 - **API error state** — shows a helpful error card if the backend is unreachable
 - **Product detail page** — "View options" links to `product.html?id=X`; detail page fetches `GET /api/products/:id`, shows image + info + qty selector + "Add to cart"
 - **Cart system** — shared `localStorage` key `'cart'` across all pages; navbar badge updates live
+- **Login page** — `login.html` posts to `POST /api/login`; on success stores `token` and `user` in `localStorage` and redirects to `index.html`; already-logged-in users are redirected away immediately
 
 ### Search & Filter Section (index.html)
 ```
@@ -278,6 +281,7 @@ All responses use a consistent envelope shape:
 | GET | `/api/products` | All products (optional `?category=` / `?badge=` filters) |
 | GET | `/api/products?category=Electronics` | Category filter — case-insensitive, server-side |
 | GET | `/api/products/:id` | Single product by numeric id |
+| POST | `/api/login` | Authenticate user — returns JWT on success |
 
 ### Category filter gatekeeper (controller)
 | Input | Behaviour |
@@ -292,6 +296,27 @@ Frontend fetch targets:
 - `js/scripts.js` initial load → `GET /api/products` → `responseJson.data` (array)
 - `js/scripts.js` category click → `GET /api/products?category=<name>` → `responseJson.data` (array)
 - `js/product.js` → `GET /api/products/:id` → `responseJson.data` (object)
+
+### Login endpoint behaviour
+| Scenario | Status | Response |
+|----------|--------|----------|
+| Missing email or password | 400 | `{ success: false, error: "Email and password are required" }` |
+| Email not in database | 401 | `{ success: false, error: "Invalid credentials" }` |
+| Wrong password | 401 | `{ success: false, error: "Invalid credentials" }` |
+| Valid credentials | 200 | `{ success: true, token: "<jwt>", user: { id, first_name } }` |
+
+Both "email not found" and "wrong password" return the same 401 message intentionally — prevents user enumeration.
+
+### Auth file locations
+| File | Purpose |
+|------|---------|
+| `Documentation/login/auth_user.json` | User database — bcrypt hashes (salt rounds 10) |
+| `server/routes/auth.js` | Route: POST / → login controller |
+| `server/controllers/authController.js` | HTTP layer: validate input, call service, sign JWT |
+| `server/services/authService.js` | Business logic: findUserByEmail, verifyPassword |
+| `.env` | `JWT_SECRET` — gitignored, never committed |
+
+JWT payload: `{ id, email, first_name }` — expires in 2 hours.
 
 ## Planned API Endpoints (future)
 | Method | Path | Description |

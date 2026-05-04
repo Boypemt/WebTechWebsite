@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "username": "alice.johnson@email.com",
+    "password": "$2b$10$BxQMdC6SGjDtgG0AkBhqoOsRjVspelj1S0dK5oGxslq57TSOFCqmu",
+    "first_name": "Alice",
+    "registered_at": "2024-01-15"
+  },
+  {
+    "id": 2,
+    "username": "bob.smith@email.com",
+    "password": "$2b$10$op4VYcDFgNoC8yQv2Q2eiO5x28zol.LET604UDygooMVaGNg5Qgvq",
+    "first_name": "Bob",
+    "registered_at": "2024-02-03"
+  },
+  {
+    "id": 3,
+    "username": "carol.white@email.com",
+    "password": "$2b$10$PcI5Z0g.KTS2ALUUCZKYL.y6V86z8EJ32/XiAhkxM74bQtm5uXQcO",
+    "first_name": "Carol",
+    "registered_at": "2024-02-20"
+  },
+  {
+    "id": 4,
+    "username": "david.lee@email.com",
+    "password": "$2b$10$Hhu25/T6I1vg7QrvH0/bQePJsoNtEVKLYgNdeueybsnqrxToH7cA2",
+    "first_name": "David",
+    "registered_at": "2024-03-08"
+  },
+  {
+    "id": 5,
+    "username": "emma.davis@email.com",
+    "password": "$2b$10$c4brIAg7GX237K4..Cnrn.Vc.ws8IFjHLJxZ1ZEWoqxMv5yMTcpae",
+    "first_name": "Emma",
+    "registered_at": "2024-03-22"
+  },
+  {
+    "id": 6,
+    "username": "frank.brown@email.com",
+    "password": "$2b$10$/CbBD7pKf09l4/30JFpXuO.5Agc.YACb490lNKKVGlcsYG/Y0cE4G",
+    "first_name": "Frank",
+    "registered_at": "2024-04-11"
+  },
+  {
+    "id": 7,
+    "username": "grace.miller@email.com",
+    "password": "$2b$10$z5y5SEka1CAP8DUISTeabuBzdZD0g0eSTYjdoql66pHcm7oQuptIe",
+    "first_name": "Grace",
+    "registered_at": "2024-05-05"
+  },
+  {
+    "id": 8,
+    "username": "henry.wilson@email.com",
+    "password": "$2b$10$zJNciTAikl5qD8mKessnYezYIKEMZzsuwDFenKbKle/4Ee1YmaMSu",
+    "first_name": "Henry",
+    "registered_at": "2024-06-14"
+  },
+  {
+    "id": 9,
+    "username": "isabella.moore@email.com",
+    "password": "$2b$10$U.8x8Dh0rkpdcLhj7nYfDe1Ged0oolgPMUV6.QwOntHkZsb1VX2xS",
+    "first_name": "Isabella",
+    "registered_at": "2024-07-30"
+  },
+  {
+    "id": 10,
+    "username": "james.taylor@email.com",
+    "password": "$2b$10$aGCoxsFHGPdPLskx0OeSH.py53G86FUXnqtKLbV3UBqyb8E4usbKq",
+    "first_name": "James",
+    "registered_at": "2024-08-18"
+  }
+]
