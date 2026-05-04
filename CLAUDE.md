@@ -29,6 +29,8 @@ Full-stack project: HTML/CSS/JS frontend + **Node.js/Express** backend (live) + 
 | `js/cart.js` | Live | cart.html JS — render cart items, qty controls, order summary |
 | `login.html` | Live | Login page — email/password form, saves JWT + user to localStorage on success |
 | `js/login.js` | Live | login.html JS — fetch POST /api/login, saveSession(), redirect to index.html |
+| `register.html` | Live | Register page — name/email/password form with live password rule checklist |
+| `js/register.js` | Live | register.html JS — real-time rule validation, fetch POST /api/register, auto-login on success |
 | `css/styles.css` | Unchanged | Bootstrap 5.2.3 compiled CSS + template overrides (10 825 lines — do not edit manually; use Bootstrap utility classes) |
 
 ### Features Implemented
@@ -282,6 +284,7 @@ All responses use a consistent envelope shape:
 | GET | `/api/products?category=Electronics` | Category filter — case-insensitive, server-side |
 | GET | `/api/products/:id` | Single product by numeric id |
 | POST | `/api/login` | Authenticate user — returns JWT on success |
+| POST | `/api/register` | Register new user — bcrypt hash stored, returns JWT on success |
 
 ### Category filter gatekeeper (controller)
 | Input | Behaviour |

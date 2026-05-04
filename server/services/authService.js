@@ -20,6 +20,7 @@
  */
 
 const path    = require('path');
+const fs      = require('fs').promises;
 const bcrypt  = require('bcryptjs');
 const { readJSON } = require('../utils/fileReader');
 
@@ -63,4 +64,45 @@ async function verifyPassword(plaintext, hash) {
 }
 
 
-module.exports = { findUserByEmail, verifyPassword };
+// -------------------------------------------------------------
+// createUser({ first_name, email, password })
+// Hashes the plaintext password, builds a new user object, appends
+// it to auth_user.json, and writes the file back to disk.
+//
+// WHY HASH HERE (SERVICE) NOT IN THE CONTROLLER?
+// Password hashing is business/security logic, not HTTP logic.
+// The controller only knows "create a user" — it shouldn't care
+// how the password is stored.
+//
+// Returns the new user object (without the password hash) so the
+// controller can sign a JWT and auto-login the user.
+// -------------------------------------------------------------
+async function createUser({ first_name, email, password }) {
+    const users = await readJSON(USERS_FILE);
+
+    // Generate the next id — max existing id + 1, or 1 for an empty file
+    const nextId = users.length > 0
+        ? Math.max(...users.map(function (u) { return u.id; })) + 1
+        : 1;
+
+    // Hash the password before storing — never save plaintext
+    const hash = await bcrypt.hash(password, 10);
+
+    const newUser = {
+        id:            nextId,
+        username:      email,
+        password:      hash,
+        first_name:    first_name,
+        registered_at: new Date().toISOString().split('T')[0]  // YYYY-MM-DD
+    };
+
+    users.push(newUser);
+
+    // Write the updated array back to the JSON file
+    await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
+
+    return newUser;
+}
+
+
+module.exports = { findUserByEmail, verifyPassword, createUser };

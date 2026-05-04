@@ -18,8 +18,9 @@ require('dotenv').config();
 
 const express       = require('express');
 const cors          = require('cors');
-const productRoutes = require('./routes/products');
-const authRoutes    = require('./routes/auth');
+const productRoutes  = require('./routes/products');
+const authRoutes     = require('./routes/auth');
+const registerRoutes = require('./routes/register');
 
 const app = express();
 
@@ -76,8 +77,10 @@ app.get('/api/health', function (req, res) {
 app.use('/api/products', productRoutes);
 
 // Authentication endpoints
-// POST /api/login — receive email + password, return JWT on success
+// POST /api/login    — receive email + password, return JWT on success
 app.use('/api/login', authRoutes);
+// POST /api/register — receive name + email + password, create user, return JWT
+app.use('/api/register', registerRoutes);
 
 
 // -------------------------------------------------------------

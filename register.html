@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <title>Login - Start Bootstrap Shop</title>
+        <title>Register - Start Bootstrap Shop</title>
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
         <link href="css/styles.css" rel="stylesheet" />
@@ -39,7 +39,7 @@
             </div>
         </nav>
 
-        <!-- Login Form Section -->
+        <!-- Register Form Section -->
         <section class="py-5">
             <div class="container px-4 px-lg-5">
                 <div class="row justify-content-center">
@@ -48,15 +48,28 @@
                         <div class="card shadow-sm border-0">
                             <div class="card-body p-4 p-md-5">
 
-                                <h2 class="fw-bolder mb-1 text-center">Sign in</h2>
-                                <p class="text-muted text-center mb-4">Access your account</p>
+                                <h2 class="fw-bolder mb-1 text-center">Create account</h2>
+                                <p class="text-muted text-center mb-4">Join us today</p>
 
-                                <!-- Error alert — hidden until login fails -->
+                                <!-- Error alert — hidden until something fails -->
                                 <div id="error-alert" class="alert alert-danger d-none" role="alert"></div>
 
-                                <form id="login-form" novalidate>
+                                <form id="register-form" novalidate>
 
-                                    <!-- Email field -->
+                                    <!-- First name -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold" for="first-name">First name</label>
+                                        <input
+                                            class="form-control"
+                                            type="text"
+                                            id="first-name"
+                                            placeholder="Alice"
+                                            required
+                                            autocomplete="given-name"
+                                        />
+                                    </div>
+
+                                    <!-- Email -->
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold" for="email">Email address</label>
                                         <input
@@ -69,38 +82,71 @@
                                         />
                                     </div>
 
-                                    <!-- Password field with show/hide toggle -->
-                                    <div class="mb-4">
+                                    <!-- Password with show/hide toggle -->
+                                    <div class="mb-2">
                                         <label class="form-label fw-semibold" for="password">Password</label>
                                         <div class="input-group">
                                             <input
                                                 class="form-control"
                                                 type="password"
                                                 id="password"
-                                                placeholder="Enter your password"
+                                                placeholder="Create a password"
                                                 required
-                                                autocomplete="current-password"
+                                                autocomplete="new-password"
                                             />
-                                            <!-- Toggle button reveals/hides the typed password -->
                                             <button class="btn btn-outline-secondary" type="button" id="toggle-password" aria-label="Toggle password visibility">
                                                 <i class="bi-eye" id="toggle-icon"></i>
                                             </button>
                                         </div>
                                     </div>
 
-                                    <!-- Submit button — spinner appears while fetch is in flight -->
+                                    <!-- Live password rule checklist -->
+                                    <!-- Each item is updated by validatePassword() as the user types -->
+                                    <ul class="list-unstyled small mb-3 ps-1">
+                                        <li id="rule-length" class="text-danger">
+                                            <i class="bi-x-circle-fill me-1"></i>At least 8 characters
+                                        </li>
+                                        <li id="rule-uppercase" class="text-danger">
+                                            <i class="bi-x-circle-fill me-1"></i>At least one uppercase letter
+                                        </li>
+                                        <li id="rule-special" class="text-danger">
+                                            <i class="bi-x-circle-fill me-1"></i>At least one special character (!@#$%^&amp;*)
+                                        </li>
+                                    </ul>
+
+                                    <!-- Confirm password -->
+                                    <div class="mb-2">
+                                        <label class="form-label fw-semibold" for="confirm-password">Confirm password</label>
+                                        <input
+                                            class="form-control"
+                                            type="password"
+                                            id="confirm-password"
+                                            placeholder="Re-enter your password"
+                                            required
+                                            autocomplete="new-password"
+                                        />
+                                    </div>
+
+                                    <!-- Passwords match indicator -->
+                                    <ul class="list-unstyled small mb-4 ps-1">
+                                        <li id="rule-match" class="text-muted">
+                                            <i class="bi-circle me-1"></i>Passwords match
+                                        </li>
+                                    </ul>
+
+                                    <!-- Submit -->
                                     <div class="d-grid">
-                                        <button class="btn btn-dark btn-lg" type="submit" id="login-btn">
+                                        <button class="btn btn-dark btn-lg" type="submit" id="register-btn">
                                             <span class="spinner-border spinner-border-sm me-2 d-none" id="btn-spinner" role="status" aria-hidden="true"></span>
-                                            <span id="btn-text">Sign in</span>
+                                            <span id="btn-text">Create account</span>
                                         </button>
                                     </div>
 
                                 </form>
 
-                                <!-- Link to register -->
+                                <!-- Link to login -->
                                 <p class="text-center text-muted small mt-4 mb-0">
-                                    Don't have an account? <a href="register.html">Create one</a>
+                                    Already have an account? <a href="login.html">Sign in</a>
                                 </p>
 
                             </div>
@@ -119,8 +165,7 @@
         </footer>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-        <!-- cart-utils.js must load first — login.js calls loadCart() for the navbar badge -->
         <script src="js/cart-utils.js"></script>
-        <script src="js/login.js"></script>
+        <script src="js/register.js"></script>
     </body>
 </html>
