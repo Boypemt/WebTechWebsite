@@ -24,7 +24,7 @@ const bcrypt  = require('bcryptjs');
 const { readJSON } = require('../utils/fileReader');
 
 // Path to the user database (JSON file for now — swap for DB later)
-const USERS_FILE = path.join(__dirname, '..', '..', 'Documentation', 'login', 'auth_user.json');
+const USERS_FILE = path.join(__dirname, '..', 'data', 'auth_user.json');
 
 
 // -------------------------------------------------------------

@@ -310,7 +310,7 @@ Both "email not found" and "wrong password" return the same 401 message intentio
 ### Auth file locations
 | File | Purpose |
 |------|---------|
-| `Documentation/login/auth_user.json` | User database — bcrypt hashes (salt rounds 10) |
+| `server/data/auth_user.json` | User database — bcrypt hashes (salt rounds 10) |
 | `server/routes/auth.js` | Route: POST / → login controller |
 | `server/controllers/authController.js` | HTTP layer: validate input, call service, sign JWT |
 | `server/services/authService.js` | Business logic: findUserByEmail, verifyPassword |
