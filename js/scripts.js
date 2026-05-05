@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
     requestProducts();
     setupSearch();
     loadCart();  // shared — defined in cart-utils.js
+    showOrderSuccessBanner(); // show a banner if redirected from a successful checkout
 
     // WHY EVENT DELEGATION?
     // Product cards are injected dynamically by renderUI(). Attaching
@@ -82,6 +83,37 @@ document.addEventListener('DOMContentLoaded', function () {
         addToCart(productId);
     });
 });
+
+
+// -------------------------------------------------------------
+// showOrderSuccessBanner()
+// Checks for ?order=success in the URL — set by cart.js after a
+// successful checkout redirect. If present, injects a dismissable
+// Bootstrap alert above the product grid and strips the flag from
+// the URL so a page refresh doesn't re-show the banner.
+// -------------------------------------------------------------
+function showOrderSuccessBanner() {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('order') !== 'success') return;
+
+    // Remove the query string from the URL bar without reloading the page
+    window.history.replaceState({}, '', window.location.pathname);
+
+    // Inject a dismissable success alert before the #catalog section
+    var banner = document.createElement('div');
+    banner.className = 'container px-4 px-lg-5 mt-3';
+    banner.innerHTML =
+        '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+            '<i class="bi-check-circle-fill me-2"></i>' +
+            '<strong>Order placed!</strong> Thank you for your purchase. ' +
+            'A confirmation was sent to your email.' +
+            '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+        '</div>';
+
+    // Insert the banner just before the catalog section
+    var catalog = document.getElementById('catalog');
+    catalog.parentNode.insertBefore(banner, catalog);
+}
 
 
 // -------------------------------------------------------------

@@ -18,9 +18,10 @@ require('dotenv').config();
 
 const express       = require('express');
 const cors          = require('cors');
-const productRoutes  = require('./routes/products');
-const authRoutes     = require('./routes/auth');
-const registerRoutes = require('./routes/register');
+const productRoutes   = require('./routes/products');
+const authRoutes      = require('./routes/auth');
+const registerRoutes  = require('./routes/register');
+const checkoutRoutes  = require('./routes/checkout');
 
 const app = express();
 
@@ -79,8 +80,10 @@ app.use('/api/products', productRoutes);
 // Authentication endpoints
 // POST /api/login    — receive email + password, return JWT on success
 app.use('/api/login', authRoutes);
-// POST /api/register — receive name + email + password, create user, return JWT
+// POST /api/register  — receive name + email + password, create user, return JWT
 app.use('/api/register', registerRoutes);
+// POST /api/checkout  — receive cart items, return order confirmation
+app.use('/api/checkout', checkoutRoutes);
 
 
 // -------------------------------------------------------------

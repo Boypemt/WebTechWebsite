@@ -1,0 +1,41 @@
+[
+  {
+    "orderId": "ORD-1777952551138",
+    "email": "alice@test.com",
+    "cardLast4": "1111",
+    "items": [
+      {
+        "id": 1,
+        "name": "Classic Leather Wallet",
+        "price": 29.99,
+        "quantity": 2,
+        "subtotal": 59.98
+      }
+    ],
+    "total": 59.98,
+    "placedAt": "2026-05-05T03:42:31.138Z"
+  },
+  {
+    "orderId": "ORD-1777952978312",
+    "email": "test@example.com",
+    "cardLast4": "1111",
+    "items": [
+      {
+        "id": 3,
+        "name": "Slim Fit Denim Jacket",
+        "price": 49.99,
+        "quantity": 1,
+        "subtotal": 49.99
+      },
+      {
+        "id": 4,
+        "name": "Stainless Steel Water Bottle",
+        "price": 34.99,
+        "quantity": 1,
+        "subtotal": 34.99
+      }
+    ],
+    "total": 84.98,
+    "placedAt": "2026-05-05T03:49:38.312Z"
+  }
+]

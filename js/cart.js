@@ -29,8 +29,9 @@
 // knowing about cart-page-specific rendering logic.
 // -------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', function () {
-    loadCart();       // shared — reads localStorage, updates badge
-    renderCartPage(); // page-specific — renders items + order summary
+    loadCart();           // shared — reads localStorage, updates badge
+    renderCartPage();     // page-specific — renders items + order summary
+    setupCheckoutForm();  // wire the checkout form submit event
 });
 
 
@@ -136,10 +137,14 @@ function buildCartRow(item) {
 function renderOrderSummary() {
     var container = document.getElementById('order-summary');
 
+    // Show or hide the checkout form depending on whether the cart has items
+    var checkoutSection = document.getElementById('checkout-section');
     if (cart.length === 0) {
         container.innerHTML = '';
+        checkoutSection.classList.add('d-none');   // hide form when cart is empty
         return;
     }
+    checkoutSection.classList.remove('d-none');    // reveal form when cart has items
 
     // Subtotal: sum of (price × quantity) for every item
     var subtotal = cart.reduce(function (sum, item) {
@@ -163,10 +168,6 @@ function renderOrderSummary() {
                     '<span>$' + subtotal.toFixed(2) + '</span>' +
                 '</div>' +
 
-                '<button class="btn btn-dark w-100 mb-2" type="button">' +
-                    '<i class="bi-lock-fill me-2"></i>Proceed to Checkout' +
-                '</button>' +
-
                 '<a href="index.html" class="btn btn-outline-dark w-100">Continue Shopping</a>' +
             '</div>' +
         '</div>';
@@ -189,6 +190,131 @@ function removeItem(productId) {
     saveToLocalStorage();  // shared — cart-utils.js
     updateCartBadge();     // shared — cart-utils.js
     renderCartPage();
+}
+
+
+// -------------------------------------------------------------
+// setupCheckoutForm()
+// Wires the checkout form's submit event to handleCheckout().
+// Called once on DOMContentLoaded — the form is always in the DOM
+// (static HTML in cart.html) even when hidden, so getElementById
+// is safe to call here without waiting for renderCartPage().
+// -------------------------------------------------------------
+function setupCheckoutForm() {
+    document.getElementById('checkout-form').addEventListener('submit', handleCheckout);
+}
+
+
+// -------------------------------------------------------------
+// handleCheckout(e)
+// Called when the user submits the checkout form.
+//
+// Steps:
+//   1. Prevent the native browser form submit
+//   2. Read email and card number from the form
+//   3. POST { items: cart, email, cardNumber } to /api/checkout
+//   4. 201 → clear the cart from localStorage → redirect to
+//            index.html?order=success
+//   5. 400 → show the field-specific error and keep the cart intact
+// -------------------------------------------------------------
+async function handleCheckout(e) {
+    // Stop the browser from navigating away via a traditional POST
+    e.preventDefault();
+
+    var email      = document.getElementById('checkout-email').value.trim();
+    var cardNumber = document.getElementById('checkout-card').value.trim();
+
+    // Hide any previous error before a new attempt
+    hideCheckoutError();
+    setCheckoutLoading(true);
+
+    try {
+        var response = await fetch('http://localhost:3000/api/checkout', {
+            method:  'POST',
+            // Tell the server we're sending JSON
+            headers: { 'Content-Type': 'application/json' },
+            // Build the payload: real cart items + form fields
+            body: JSON.stringify({
+                items:      cart,       // the shared cart[] array from cart-utils.js
+                email:      email,
+                cardNumber: cardNumber
+            })
+        });
+
+        var data = await response.json();
+
+        if (response.ok && data.success) {
+            // --- Order placed successfully ---
+
+            // Clear the active cart so the navbar badge resets
+            localStorage.removeItem('cart');
+
+            // If the user is logged in, clear their personal cart key too
+            // so they don't see the same items if they visit the cart again
+            var storedUser = localStorage.getItem('user');
+            if (storedUser) {
+                var user = JSON.parse(storedUser);
+                localStorage.removeItem('cart_' + user.id);
+            }
+
+            // Redirect to the shop with a flag so index.html can show a banner
+            window.location.href = 'index.html?order=success';
+
+        } else {
+            // --- API returned 400 with a field-specific error ---
+            // Show the error next to the relevant field if we can identify it,
+            // otherwise show it in the general error banner at the top of the form.
+            var message = data.error || 'Checkout failed. Please try again.';
+
+            // Highlight the specific field that failed when the server tells us which one
+            if (data.field === 'email') {
+                document.getElementById('checkout-email').classList.add('is-invalid');
+            } else if (data.field === 'cardNumber') {
+                document.getElementById('checkout-card').classList.add('is-invalid');
+            }
+
+            showCheckoutError(message);
+        }
+
+    } catch (err) {
+        // Network error — backend not running or unreachable
+        showCheckoutError('Could not reach the server. Make sure the backend is running.');
+    } finally {
+        setCheckoutLoading(false);
+    }
+}
+
+
+// -------------------------------------------------------------
+// Checkout UI helpers
+// -------------------------------------------------------------
+
+function showCheckoutError(message) {
+    // Remove any previous is-invalid highlights when showing a new error
+    document.getElementById('checkout-email').classList.remove('is-invalid');
+    document.getElementById('checkout-card').classList.remove('is-invalid');
+
+    var alert = document.getElementById('checkout-error');
+    alert.textContent = message;
+    alert.classList.remove('d-none');
+}
+
+function hideCheckoutError() {
+    document.getElementById('checkout-email').classList.remove('is-invalid');
+    document.getElementById('checkout-card').classList.remove('is-invalid');
+    document.getElementById('checkout-error').classList.add('d-none');
+}
+
+function setCheckoutLoading(isLoading) {
+    var btn     = document.getElementById('place-order-btn');
+    var spinner = document.getElementById('checkout-spinner');
+    var text    = document.getElementById('checkout-btn-text');
+
+    btn.disabled = isLoading;
+    spinner.classList.toggle('d-none', !isLoading);
+    text.innerHTML = isLoading
+        ? 'Placing order…'
+        : '<i class="bi-lock-fill me-2"></i>Place Order';
 }
 
 

@@ -48,10 +48,61 @@
                     <div class="col-lg-8" id="cart-items">
                         <!-- Populated by cart.js -->
                     </div>
-                    <!-- Order Summary -->
+                    <!-- Order Summary + Checkout Form -->
                     <div class="col-lg-4">
-                        <div id="order-summary">
-                            <!-- Populated by cart.js -->
+                        <!-- Order summary card — populated by cart.js -->
+                        <div id="order-summary"></div>
+
+                        <!-- Checkout form — shown by cart.js when cart is not empty -->
+                        <div id="checkout-section" class="d-none mt-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="fw-bolder mb-3">Payment Details</h5>
+
+                                    <!-- Field-specific error — updated by cart.js on 400 response -->
+                                    <div id="checkout-error" class="alert alert-danger d-none" role="alert"></div>
+
+                                    <form id="checkout-form" novalidate>
+
+                                        <!-- Email field -->
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold" for="checkout-email">Email</label>
+                                            <input
+                                                class="form-control"
+                                                type="email"
+                                                id="checkout-email"
+                                                placeholder="you@example.com"
+                                                autocomplete="email"
+                                                required
+                                            />
+                                        </div>
+
+                                        <!-- 16-digit card number field -->
+                                        <!-- maxlength="19" allows spaces (4×4 + 3 spaces) -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-semibold" for="checkout-card">Card Number</label>
+                                            <input
+                                                class="form-control"
+                                                type="text"
+                                                id="checkout-card"
+                                                placeholder="1234 5678 9012 3456"
+                                                maxlength="19"
+                                                autocomplete="cc-number"
+                                                required
+                                            />
+                                        </div>
+
+                                        <!-- Submit button with loading spinner -->
+                                        <button class="btn btn-dark w-100" type="submit" id="place-order-btn">
+                                            <span class="spinner-border spinner-border-sm me-2 d-none" id="checkout-spinner" role="status" aria-hidden="true"></span>
+                                            <span id="checkout-btn-text">
+                                                <i class="bi-lock-fill me-2"></i>Place Order
+                                            </span>
+                                        </button>
+
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
