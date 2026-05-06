@@ -44,7 +44,7 @@ const CARD_REGEX  = /^\d{16}$/;
 //   { success: false, field: "<fieldName>", error: "<reason>" }
 // -------------------------------------------------------------
 async function placeOrder(req, res) {
-    const { items, email, cardNumber } = req.body;
+    const { items, email, cardNumber, userId } = req.body;
 
     // --- Validate 1: items must be a non-empty array ---
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -82,7 +82,8 @@ async function placeOrder(req, res) {
         const order = await checkoutService.placeOrder({
             items,
             email,
-            cardNumber: strippedCard   // pass the cleaned version
+            cardNumber: strippedCard,  // pass the cleaned version
+            userId:     userId || null  // null for guest checkout
         });
 
         // 201 Created — new order resource was successfully saved

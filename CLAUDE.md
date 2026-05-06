@@ -2,7 +2,7 @@
 
 ## Project Overview
 E-commerce shop homepage built on the **Start Bootstrap Shop Homepage** template.
-Full-stack project: HTML/CSS/JS frontend + **Node.js/Express** backend (live) + **SQLite** database (planned).
+Full-stack project: HTML/CSS/JS frontend + **Node.js/Express** backend (live) + **SQLite** database (live).
 
 ## Tech Stack
 | Layer | Technology |
@@ -10,7 +10,7 @@ Full-stack project: HTML/CSS/JS frontend + **Node.js/Express** backend (live) + 
 | Frontend | HTML5, CSS3, Vanilla JavaScript |
 | Styling | Bootstrap 5.2.3, Bootstrap Icons 1.5.0 |
 | Backend | Node.js, Express (live on port 3000) |
-| Database | SQLite via `better-sqlite3` (planned) |
+| Database | SQLite via `better-sqlite3` (live — `store.db`) |
 
 ---
 
@@ -31,6 +31,8 @@ Full-stack project: HTML/CSS/JS frontend + **Node.js/Express** backend (live) + 
 | `js/login.js` | Live | login.html JS — fetch POST /api/login, saveSession(), redirect to index.html |
 | `register.html` | Live | Register page — name/email/password form with live password rule checklist |
 | `js/register.js` | Live | register.html JS — real-time rule validation, fetch POST /api/register, auto-login on success |
+| `store.db` | Live | SQLite database — orders table (one row per line item) |
+| `server/db/database.js` | Live | SQLite connection singleton — opens store.db, enables WAL, runs schema on startup |
 | `css/styles.css` | Unchanged | Bootstrap 5.2.3 compiled CSS + template overrides (10 825 lines — do not edit manually; use Bootstrap utility classes) |
 
 ### Features Implemented
@@ -47,6 +49,7 @@ Full-stack project: HTML/CSS/JS frontend + **Node.js/Express** backend (live) + 
 - **Product detail page** — "View options" links to `product.html?id=X`; detail page fetches `GET /api/products/:id`, shows image + info + qty selector + "Add to cart"
 - **Cart system** — shared `localStorage` key `'cart'` across all pages; navbar badge updates live
 - **Login page** — `login.html` posts to `POST /api/login`; on success stores `token` and `user` in `localStorage` and redirects to `index.html`; already-logged-in users are redirected away immediately
+- **Checkout → SQLite** — `POST /api/checkout` validates cart/email/card, re-prices server-side, inserts one row per line item into `store.db orders` table; `user_id` is null for guests, integer for logged-in users; `order_id` groups line items from the same order
 
 ### Search & Filter Section (index.html)
 ```
@@ -243,16 +246,27 @@ Allowed methods: `GET POST PUT DELETE OPTIONS`
 ## Backend Structure (Express + Node.js)
 ```
 /server
-├── index.js                  # Entry point — binds app to port 3000
-├── app.js                    # Express app, middleware, routes, error handlers
+├── index.js                      # Entry point — binds app to port 3000
+├── app.js                        # Express app, middleware, routes, error handlers
+├── db/
+│   └── database.js               # SQLite singleton — opens store.db, schema init
 ├── routes/
-│   └── products.js           # Mounts GET /api/products, GET /api/products/:id
+│   ├── products.js               # GET /api/products, GET /api/products/:id
+│   ├── auth.js                   # POST /api/login
+│   ├── register.js               # POST /api/register
+│   └── checkout.js               # POST /api/checkout
 ├── controllers/
-│   └── productController.js  # HTTP layer — reads req, calls service, writes res
+│   ├── productController.js      # HTTP layer — reads req, calls service, writes res
+│   ├── authController.js         # login + register HTTP handlers
+│   └── checkoutController.js     # validates input, delegates to checkoutService
 ├── services/
-│   └── productService.js     # Business logic — reads ../products.json, filters
+│   ├── productService.js         # reads products.json, filters
+│   ├── authService.js            # findUserByEmail, verifyPassword, createUser
+│   └── checkoutService.js        # re-prices server-side, inserts to SQLite
+├── data/
+│   └── auth_user.json            # user accounts with bcrypt hashes
 └── utils/
-    └── fileReader.js         # Async JSON file reader (fs.promises)
+    └── fileReader.js             # async JSON file reader (fs.promises)
 ```
 
 ### Pattern: Controller → Route → Service
@@ -285,6 +299,7 @@ All responses use a consistent envelope shape:
 | GET | `/api/products/:id` | Single product by numeric id |
 | POST | `/api/login` | Authenticate user — returns JWT on success |
 | POST | `/api/register` | Register new user — bcrypt hash stored, returns JWT on success |
+| POST | `/api/checkout` | Place order — validates input, re-prices server-side, saves to SQLite |
 
 ### Category filter gatekeeper (controller)
 | Input | Behaviour |
@@ -321,9 +336,35 @@ Both "email not found" and "wrong password" return the same 401 message intentio
 
 JWT payload: `{ id, email, first_name }` — expires in 2 hours.
 
+### SQLite Database (store.db)
+| Detail | Value |
+|--------|-------|
+| File path | `store.db` (project root) |
+| Library | `better-sqlite3` (synchronous API) |
+| Connection | `server/db/database.js` — singleton, shared across services |
+| WAL mode | enabled — readers don't block writers |
+
+#### orders table schema
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | INTEGER PK | auto-increment |
+| `order_id` | TEXT | `ORD-<timestamp>` — groups line items from same order |
+| `user_id` | INTEGER | nullable — NULL for guest checkout |
+| `email` | TEXT | customer email |
+| `card_last4` | TEXT | last 4 digits only (PCI-DSS) |
+| `product_id` | INTEGER | FK to products catalogue |
+| `product_name` | TEXT | denormalized for reporting |
+| `quantity` | INTEGER | |
+| `unit_price` | REAL | authoritative server price |
+| `total_price` | REAL | unit_price × quantity |
+| `placed_at` | TEXT | ISO 8601 timestamp |
+
+One row per line item. Query all rows with the same `order_id` to reconstruct a full order.
+
 ## Planned API Endpoints (future)
 | Method | Path | Description |
 |--------|------|-------------|
+| GET | `/api/orders` | List orders from SQLite (admin) |
 | POST | `/api/products` | Create product |
 | PUT | `/api/products/:id` | Update product |
 | DELETE | `/api/products/:id` | Delete product |

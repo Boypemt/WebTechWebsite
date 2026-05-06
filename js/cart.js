@@ -224,6 +224,10 @@ async function handleCheckout(e) {
     var email      = document.getElementById('checkout-email').value.trim();
     var cardNumber = document.getElementById('checkout-card').value.trim();
 
+    // Include userId so the server can link the order to an account (null for guests)
+    var storedUser = localStorage.getItem('user');
+    var userId     = storedUser ? JSON.parse(storedUser).id : null;
+
     // Hide any previous error before a new attempt
     hideCheckoutError();
     setCheckoutLoading(true);
@@ -237,7 +241,8 @@ async function handleCheckout(e) {
             body: JSON.stringify({
                 items:      cart,       // the shared cart[] array from cart-utils.js
                 email:      email,
-                cardNumber: cardNumber
+                cardNumber: cardNumber,
+                userId:     userId      // null for guests, integer for logged-in users
             })
         });
 

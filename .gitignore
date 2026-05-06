@@ -6,6 +6,11 @@ design/
 # Node
 node_modules/
 
+# SQLite database — runtime data, not source code
+store.db
+store.db-shm
+store.db-wal
+
 # Environment variables — never commit secrets
 .env
 
