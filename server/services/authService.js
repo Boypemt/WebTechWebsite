@@ -23,15 +23,9 @@ const path    = require('path');
 const fs      = require('fs').promises;
 const bcrypt  = require('bcryptjs');
 const { readJSON } = require('../utils/fileReader');
-const db      = require('../db/database');
+const db      = require('../db');   // resolves to server/db/index.js
 
 const USERS_FILE = path.join(__dirname, '..', 'data', 'auth_user.json');
-
-// Prepared statement for inserting a new user into SQLite
-const insertUserDb = db.prepare(`
-    INSERT INTO users (id, email, password_hash, first_name, registered_at)
-    VALUES (@id, @email, @password_hash, @first_name, @registered_at)
-`);
 
 
 // -------------------------------------------------------------
@@ -104,16 +98,13 @@ async function createUser({ first_name, email, password }) {
 
     users.push(newUser);
 
-    // Write to JSON (auth source) and SQLite (FK target for orders) in parallel
+    // Write to JSON (auth source) and SQLite (FK target for orders)
     await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
 
-    insertUserDb.run({
-        id:            newUser.id,
-        email:         newUser.username,
-        password_hash: newUser.password,
-        first_name:    newUser.first_name,
-        registered_at: newUser.registered_at
-    });
+    await db.runAsync(
+        'INSERT INTO users (id, email, password_hash, first_name, registered_at) VALUES (?, ?, ?, ?, ?)',
+        [newUser.id, newUser.username, newUser.password, newUser.first_name, newUser.registered_at]
+    );
 
     return newUser;
 }
