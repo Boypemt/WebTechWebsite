@@ -5,21 +5,23 @@
  *   1. Re-calculate the order total server-side using prices from
  *      products.json — the client's prices are NEVER trusted.
  *   2. Verify every item id exists in the catalogue.
- *   3. Persist the completed order to store.db (one row per line item).
+ *   3. Persist the order to store.db:
+ *        orders      — one header row (order_id, user_id, total, …)
+ *        order_items — one row per line item (product_id, quantity, …)
  *
  * WHY RE-CALCULATE SERVER-SIDE?
  * A user could edit the fetch payload in DevTools and send
  * price: 0.01 for a $500 item. By ignoring req.body prices and
  * looking up the real price from products.json, we close that hole.
  *
+ * WHY STORE unit_price IN order_items?
+ * Products change price over time. Storing the price at purchase time
+ * means the receipt always reflects what the customer actually paid,
+ * not today's price.
+ *
  * WHY NOT STORE THE FULL CARD NUMBER?
  * Storing raw card numbers violates PCI-DSS. We keep only the
  * last 4 digits for receipt display — the rest is discarded here.
- *
- * WHY ONE ROW PER LINE ITEM?
- * Normalised storage makes it straightforward to query sales by
- * product, revenue by category, or reorder rates later — things
- * that would require JSON parsing if stored as a blob.
  *
  * Used by: controllers/checkoutController.js
  */
@@ -30,21 +32,35 @@ const db           = require('../db/database');
 
 const PRODUCTS_FILE = path.join(__dirname, '..', '..', 'products.json');
 
-// Prepared statement — compiled once, reused on every checkout
-const insertOrderRow = db.prepare(`
-    INSERT INTO orders
-        (order_id, user_id, email, card_last4,
-         product_id, product_name, quantity, unit_price, total_price, placed_at)
-    VALUES
-        (@order_id, @user_id, @email, @card_last4,
-         @product_id, @product_name, @quantity, @unit_price, @total_price, @placed_at)
+// Prepared statements — compiled once, reused on every checkout.
+// Named parameters (@name) are safer than positional (?) for multi-column inserts.
+const insertOrder = db.prepare(`
+    INSERT INTO orders (order_id, user_id, email, card_last4, total, placed_at)
+    VALUES (@order_id, @user_id, @email, @card_last4, @total, @placed_at)
 `);
 
-// Wraps multiple inserts in one atomic transaction so an order is
-// either fully saved or not saved at all — no partial writes.
-const insertOrderTransaction = db.transaction(function (rows) {
-    for (const row of rows) {
-        insertOrderRow.run(row);
+const insertOrderItem = db.prepare(`
+    INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price)
+    VALUES (@order_id, @product_id, @quantity, @unit_price, @total_price)
+`);
+
+// Wraps the header + all line item inserts in one atomic transaction.
+// If any INSERT fails (e.g. FK violation), the whole order rolls back —
+// no partial orders are ever saved.
+const saveOrderTransaction = db.transaction(function (header, items) {
+    // Insert header row — SQLite returns the auto-incremented PK in lastInsertRowid
+    const result  = insertOrder.run(header);
+    const rowId   = result.lastInsertRowid;
+
+    // Insert one line item row per product
+    for (const item of items) {
+        insertOrderItem.run({
+            order_id:    rowId,        // INTEGER FK → orders.id
+            product_id:  item.id,
+            quantity:    item.quantity,
+            unit_price:  item.price,
+            total_price: item.subtotal
+        });
     }
 });
 
@@ -56,7 +72,7 @@ const insertOrderTransaction = db.transaction(function (rows) {
 // cardNumber — validated 16-digit string (only last 4 stored)
 // userId     — integer from auth session, or null for guest
 //
-// Returns the saved order object on success.
+// Returns a summary object on success.
 // Throws { field, error } on any failure so the controller can
 // return a field-specific 400 response.
 // -------------------------------------------------------------
@@ -75,6 +91,7 @@ async function placeOrder({ items, email, cardNumber, userId }) {
             throw { field: 'items', error: 'Product ID ' + item.id + ' not found in catalogue' };
         }
 
+        // Use the server's price — ignore whatever the client sent
         const lineTotal = product.price.current * item.quantity;
         total += lineTotal;
 
@@ -89,45 +106,35 @@ async function placeOrder({ items, email, cardNumber, userId }) {
 
     total = parseFloat(total.toFixed(2));
 
-    // --- Step 2: Build the order record ---
+    // --- Step 2: Build the records ---
     const orderId   = 'ORD-' + Date.now();
     const cardLast4 = cardNumber.slice(-4);
     const placedAt  = new Date().toISOString();
 
-    // --- Step 3: Persist to SQLite — one row per line item ---
-    // Build the row array then insert inside a single transaction.
-    // If any insert fails, the transaction rolls back automatically.
+    const header = {
+        order_id:   orderId,
+        user_id:    userId || null,  // null = guest checkout
+        email:      email,
+        card_last4: cardLast4,
+        total:      total,
+        placed_at:  placedAt
+    };
+
+    // --- Step 3: Persist to SQLite in one atomic transaction ---
     try {
-        const rows = verifiedItems.map(function (item) {
-            return {
-                order_id:     orderId,
-                user_id:      userId || null,   // null = guest checkout
-                email:        email,
-                card_last4:   cardLast4,
-                product_id:   item.id,
-                product_name: item.name,
-                quantity:     item.quantity,
-                unit_price:   item.price,
-                total_price:  item.subtotal,
-                placed_at:    placedAt
-            };
-        });
-
-        insertOrderTransaction(rows);
-
+        saveOrderTransaction(header, verifiedItems);
     } catch (dbErr) {
         console.error('[checkoutService] DB insert failed:', dbErr);
         throw { field: 'save', error: 'Failed to save order. Please try again.' };
     }
 
-    // Return a summary the controller can send back to the client
     return {
-        orderId:  orderId,
-        email:    email,
+        orderId:   orderId,
+        email:     email,
         cardLast4: cardLast4,
-        items:    verifiedItems,
-        total:    total,
-        placedAt: placedAt
+        items:     verifiedItems,
+        total:     total,
+        placedAt:  placedAt
     };
 }
 
