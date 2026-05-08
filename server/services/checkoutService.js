@@ -1,32 +1,26 @@
 /**
  * checkoutService.js — Checkout Business Logic
  *
- * Responsibilities:
- *   1. Re-look up the authoritative price from the products table for
- *      every cart item — the client's prices are NEVER trusted.
- *   2. Verify every item id exists in the catalogue.
- *   3. Persist the completed order to store.db:
- *        orders      — one header row  (db.run INSERT INTO orders)
- *        order_items — one row per item (db.run INSERT INTO order_items)
- *      Both inserts share a single BEGIN/COMMIT transaction so the
- *      order is either fully saved or not saved at all.
+ * Owns the rules of placing an order:
+ *   1. Re-verify every item exists in the catalogue (productRepository)
+ *   2. Re-calculate the total server-side — never trust client prices
+ *   3. Build the order record (orderId, cardLast4, timestamp)
+ *   4. Delegate persistence to orderRepository — no SQL here
  *
- * WHY RE-CALCULATE SERVER-SIDE?
- * A user could edit the fetch payload in DevTools and send price: 0.01
- * for a $500 item. Reading the real price from the DB closes that hole.
- *
- * WHY STORE unit_price IN order_items?
- * Products change price over time. Storing the price at purchase time
- * means the receipt always reflects what the customer actually paid.
- *
- * WHY NOT STORE THE FULL CARD NUMBER?
- * Storing raw card numbers violates PCI-DSS. We keep only the last 4
- * digits for receipt display — the rest is discarded here.
+ * WHY NO SQL IN THIS FILE?
+ * Business rules (price integrity, PCI-DSS card masking, total
+ * rounding) change independently from storage details (which table,
+ * which columns, how transactions work). Keeping them in separate
+ * files means a DB schema change never accidentally breaks pricing
+ * logic, and vice versa.
  *
  * Used by: controllers/checkoutController.js
  */
 
-const db = require('../db');   // resolves to server/db/index.js
+'use strict';
+
+const productRepository = require('../repositories/productRepository');
+const orderRepository   = require('../repositories/orderRepository');
 
 
 // -------------------------------------------------------------
@@ -42,16 +36,14 @@ const db = require('../db');   // resolves to server/db/index.js
 // -------------------------------------------------------------
 async function placeOrder({ items, email, cardNumber, userId }) {
 
-    // --- Step 1: Verify every item and re-calculate total from DB ---
+    // --- Step 1: Verify every item and re-price from DB ---
+    // Client prices are NEVER trusted — a user could send price:0.01.
     var total         = 0;
     var verifiedItems = [];
 
     for (var i = 0; i < items.length; i++) {
         var item    = items[i];
-        var product = await db.getAsync(
-            'SELECT id, name, price_current FROM products WHERE id = ?',
-            [item.id]
-        );
+        var product = await productRepository.findById(item.id);
 
         if (!product) {
             throw { field: 'items', error: 'Product ID ' + item.id + ' not found in catalogue' };
@@ -63,7 +55,7 @@ async function placeOrder({ items, email, cardNumber, userId }) {
         verifiedItems.push({
             id:       product.id,
             name:     product.name,
-            price:    product.price_current,   // authoritative server price
+            price:    product.price_current,   // authoritative price
             quantity: item.quantity,
             subtotal: parseFloat(lineTotal.toFixed(2))
         });
@@ -71,50 +63,31 @@ async function placeOrder({ items, email, cardNumber, userId }) {
 
     total = parseFloat(total.toFixed(2));
 
-    // --- Step 2: Build order identifiers ---
-    var orderId   = 'ORD-' + Date.now();
-    var cardLast4 = cardNumber.slice(-4);    // only last 4 — PCI-DSS
-    var placedAt  = new Date().toISOString();
+    // --- Step 2: Build the order record (business logic) ---
+    var header = {
+        order_id:   'ORD-' + Date.now(),
+        user_id:    userId || null,            // null = guest checkout
+        email:      email,
+        card_last4: cardNumber.slice(-4),      // PCI-DSS: discard the rest
+        total:      total,
+        placed_at:  new Date().toISOString()
+    };
 
-    // --- Step 3: Persist to SQLite in a single transaction ---
-    // BEGIN → INSERT orders header → INSERT each order_item → COMMIT
-    // Any failure rolls back so no partial order is ever saved.
+    // --- Step 3: Persist via repository (no SQL here) ---
     try {
-        await db.runAsync('BEGIN');
-
-        // Insert the order header — lastID is the auto-increment PK (orders.id)
-        var headerResult = await db.runAsync(
-            'INSERT INTO orders (order_id, user_id, email, card_last4, total, placed_at) VALUES (?, ?, ?, ?, ?, ?)',
-            [orderId, userId || null, email, cardLast4, total, placedAt]
-        );
-
-        var dbOrderId = headerResult.lastID;   // INTEGER FK used in order_items
-
-        // Insert one row per line item
-        for (var j = 0; j < verifiedItems.length; j++) {
-            var vi = verifiedItems[j];
-            await db.runAsync(
-                'INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)',
-                [dbOrderId, vi.id, vi.quantity, vi.price, vi.subtotal]
-            );
-        }
-
-        await db.runAsync('COMMIT');
-
+        await orderRepository.save(header, verifiedItems);
     } catch (dbErr) {
-        // Roll back so partial writes don't linger
-        try { await db.runAsync('ROLLBACK'); } catch (_) {}
-        console.error('[checkoutService] DB error:', dbErr.message || dbErr);
+        console.error('[checkoutService] persistence error:', dbErr.message || dbErr);
         throw { field: 'save', error: 'Failed to save order. Please try again.' };
     }
 
     return {
-        orderId:   orderId,
+        orderId:   header.order_id,
         email:     email,
-        cardLast4: cardLast4,
+        cardLast4: header.card_last4,
         items:     verifiedItems,
         total:     total,
-        placedAt:  placedAt
+        placedAt:  header.placed_at
     };
 }
 

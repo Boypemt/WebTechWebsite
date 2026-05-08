@@ -1,63 +1,46 @@
 /**
  * authService.js — Authentication Business Logic
  *
- * Handles two jobs:
- *   1. Finding a user by email in auth_user.json
- *   2. Verifying a plaintext password against its bcrypt hash
+ * Owns security-sensitive operations:
+ *   findUserByEmail  — delegates lookup to userRepository
+ *   verifyPassword   — bcrypt comparison (timing-safe, no DB needed)
+ *   createUser       — hashes password, delegates persistence to userRepository
  *
- * WHY BCRYPT?
- * MD5 and SHA hashes are fast — an attacker with a GPU can test
- * billions of guesses per second. bcrypt is intentionally slow
- * (cost factor 10 = ~100ms per hash), making brute-force attacks
- * impractical even if the database is leaked.
+ * WHY HASH HERE AND NOT IN THE REPOSITORY?
+ * Password hashing is a security rule ("always use bcrypt, cost 10"),
+ * not a storage rule. If we switched from bcrypt to Argon2 tomorrow,
+ * only this file changes — the repository just stores whatever hash
+ * it receives and never needs to know which algorithm was used.
  *
- * WHY SEPARATE FROM THE CONTROLLER?
- * The controller handles HTTP (req/res). This service handles data
- * and security logic. Keeping them separate means you can swap the
- * data source (JSON → SQLite → PostgreSQL) without touching the route.
+ * WHY VAGUE 401 MESSAGE FOR LOGIN FAILURES?
+ * "Invalid email or password" is the same for both "email not found"
+ * and "wrong password." Separate messages would let an attacker
+ * enumerate valid emails by observing which error they get.
  *
  * Used by: controllers/authController.js
  */
 
-const path    = require('path');
-const fs      = require('fs').promises;
-const bcrypt  = require('bcryptjs');
-const { readJSON } = require('../utils/fileReader');
-const db      = require('../db');   // resolves to server/db/index.js
+'use strict';
 
-const USERS_FILE = path.join(__dirname, '..', 'data', 'auth_user.json');
+const bcrypt         = require('bcryptjs');
+const userRepository = require('../repositories/userRepository');
 
 
 // -------------------------------------------------------------
 // findUserByEmail(email)
-// Searches auth_user.json for a user whose username matches
-// the submitted email (case-insensitive).
-//
-// Returns the full user object if found, or null if not found.
-// The controller translates null into a 401 Unauthorized response.
+// Thin delegation to the repository. Kept in the service layer
+// so the controller always talks to services, never repositories.
 // -------------------------------------------------------------
 async function findUserByEmail(email) {
-    const users = await readJSON(USERS_FILE);
-
-    // .toLowerCase() on both sides so "Alice@Email.com" still matches
-    return users.find(function (u) {
-        return u.username.toLowerCase() === email.toLowerCase();
-    }) || null;
+    return userRepository.findByEmail(email);
 }
 
 
 // -------------------------------------------------------------
 // verifyPassword(plaintext, hash)
-// Uses bcrypt.compare() to check whether the submitted plaintext
-// password produces the same hash stored in the database.
-//
-// WHY NOT HASH AND COMPARE DIRECTLY?
-// bcrypt hashes include a random salt in the stored string
-// (the "$2b$10$..." prefix). bcrypt.compare() extracts the salt
-// from the stored hash, re-hashes the plaintext with it, and
-// compares — you can't do this with a simple === check.
-//
-// Returns a Promise<boolean> — true if match, false if not.
+// bcrypt.compare() extracts the salt from the stored hash,
+// re-hashes the plaintext, and compares — safe against timing
+// attacks. Returns Promise<boolean>.
 // -------------------------------------------------------------
 async function verifyPassword(plaintext, hash) {
     return bcrypt.compare(plaintext, hash);
@@ -66,47 +49,14 @@ async function verifyPassword(plaintext, hash) {
 
 // -------------------------------------------------------------
 // createUser({ first_name, email, password })
-// Hashes the plaintext password, builds a new user object, appends
-// it to auth_user.json, and writes the file back to disk.
-//
-// WHY HASH HERE (SERVICE) NOT IN THE CONTROLLER?
-// Password hashing is business/security logic, not HTTP logic.
-// The controller only knows "create a user" — it shouldn't care
-// how the password is stored.
-//
-// Returns the new user object (without the password hash) so the
-// controller can sign a JWT and auto-login the user.
+// Business logic: hash the plaintext password (cost 10 = ~100ms,
+// making brute-force impractical even if the DB is leaked).
+// Storage: delegated entirely to userRepository.create().
+// Returns the new user object so the controller can sign a JWT.
 // -------------------------------------------------------------
 async function createUser({ first_name, email, password }) {
-    const users = await readJSON(USERS_FILE);
-
-    // Generate the next id — max existing id + 1, or 1 for an empty file
-    const nextId = users.length > 0
-        ? Math.max(...users.map(function (u) { return u.id; })) + 1
-        : 1;
-
-    // Hash the password before storing — never save plaintext
-    const hash = await bcrypt.hash(password, 10);
-
-    const newUser = {
-        id:            nextId,
-        username:      email,
-        password:      hash,
-        first_name:    first_name,
-        registered_at: new Date().toISOString().split('T')[0]  // YYYY-MM-DD
-    };
-
-    users.push(newUser);
-
-    // Write to JSON (auth source) and SQLite (FK target for orders)
-    await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
-
-    await db.runAsync(
-        'INSERT INTO users (id, email, password_hash, first_name, registered_at) VALUES (?, ?, ?, ?, ?)',
-        [newUser.id, newUser.username, newUser.password, newUser.first_name, newUser.registered_at]
-    );
-
-    return newUser;
+    var passwordHash = await bcrypt.hash(password, 10);
+    return userRepository.create({ first_name, email, passwordHash });
 }
 
 
