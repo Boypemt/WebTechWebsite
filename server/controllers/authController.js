@@ -27,8 +27,8 @@ const authService = require('../services/authService');
 
 // JWT_SECRET must be set in .env — never hardcode secrets in source code
 const JWT_SECRET  = process.env.JWT_SECRET;
-// Token expires after 2 hours — balance between convenience and security
-const JWT_EXPIRES = '2h';
+// Token lifetime — override in .env (e.g. JWT_EXPIRES=1h for tighter sessions)
+const JWT_EXPIRES = process.env.JWT_EXPIRES || '2h';
 
 
 // -------------------------------------------------------------

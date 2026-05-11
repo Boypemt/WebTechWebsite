@@ -55,7 +55,8 @@ async function verifyPassword(plaintext, hash) {
 // Returns the new user object so the controller can sign a JWT.
 // -------------------------------------------------------------
 async function createUser({ first_name, email, password }) {
-    var passwordHash = await bcrypt.hash(password, 10);
+    var rounds       = parseInt(process.env.BCRYPT_ROUNDS, 10) || 10;
+    var passwordHash = await bcrypt.hash(password, rounds);
     return userRepository.create({ first_name, email, passwordHash });
 }
 

@@ -29,9 +29,9 @@
 
 const orderRepository = require('../repositories/orderRepository');
 
-// Base URL of the Product microservice.
-// Swap this single constant to point at a real host when extracting.
-const PRODUCT_SERVICE_URL = 'http://localhost:3000/api/products';
+// Base URL of the Product microservice — set in .env.
+// Swap to a real host (http://product-service/api/products) when extracting.
+const PRODUCT_SERVICE_URL = process.env.PRODUCT_SERVICE_URL;
 
 
 // -------------------------------------------------------------

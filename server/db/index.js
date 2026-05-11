@@ -24,7 +24,11 @@ const path    = require('path');
 const fs      = require('fs');
 const sqlite3 = require('sqlite3').verbose();
 
-const DB_PATH    = path.join(__dirname, '..', '..', 'store.db');
+// DB_PATH in .env lets you point at a different file (e.g. for testing).
+// Defaults to store.db in the project root when the variable is not set.
+const DB_PATH = process.env.DB_PATH
+    ? path.resolve(process.env.DB_PATH)
+    : path.join(__dirname, '..', '..', 'store.db');
 const SCHEMA_SQL = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf-8');
 
 // Open (or create) the database file

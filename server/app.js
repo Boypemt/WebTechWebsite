@@ -13,8 +13,9 @@
  * Used by: index.js
  */
 
-// Load .env variables (JWT_SECRET, etc.) into process.env before anything else
-require('dotenv').config();
+// dotenv is loaded in server/index.js before this module is required.
+// Do NOT call require('dotenv').config() here — it would re-load .env
+// after process.env is already populated and could shadow later changes.
 
 const express       = require('express');
 const cors          = require('cors');
@@ -43,12 +44,11 @@ const app = express();
 // A whitelist restricts access to only the origins we control,
 // which is the correct default for any real project.
 // -------------------------------------------------------------
+// CORS_ORIGINS in .env is a comma-separated list of allowed origins.
+// Falls back to safe local-dev defaults when the variable is not set.
+const rawOrigins = process.env.CORS_ORIGINS || 'http://localhost:5500,http://127.0.0.1:5500,http://localhost:3000';
 const corsOptions = {
-    origin: [
-        'http://localhost:5500',    // VS Code Live Server default
-        'http://127.0.0.1:5500',   // Live Server (IP variant)
-        'http://localhost:3000'    // future: frontend served from backend
-    ],
+    origin:  rawOrigins.split(',').map(function (o) { return o.trim(); }),
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 };
 
