@@ -50,25 +50,29 @@ const productService = require('../services/productService');
 // Valid requests are forwarded to the service which does the
 // actual case-insensitive filter against products.json.
 // -------------------------------------------------------------
-async function listProducts(req, res) {
-    const { category, badge } = req.query;
+async function listProducts(req, res, next) {
+    try {
+        const { category, badge } = req.query;
 
-    // Gatekeeper: reject malformed category values before hitting the service
-    if (category !== undefined) {
-        if (category === '' || category.length > 50) {
-            return res.status(400).json({
-                success: false,
-                error:   'Invalid category'
-            });
+        // Gatekeeper: reject malformed category values before hitting the service
+        if (category !== undefined) {
+            if (category === '' || category.length > 50) {
+                return res.status(400).json({
+                    success: false,
+                    error:   'Invalid category'
+                });
+            }
         }
-    }
 
-    const products = await productService.getAllProducts({ category, badge });
-    res.json({
-        success: true,
-        count:   products.length,
-        data:    products
-    });
+        const products = await productService.getAllProducts({ category, badge });
+        res.json({
+            success: true,
+            count:   products.length,
+            data:    products
+        });
+    } catch (err) {
+        next(err);
+    }
 }
 
 
@@ -80,15 +84,19 @@ async function listProducts(req, res) {
 // the service — product ids in products.json are numeric.
 // Returns 404 envelope if no match is found.
 // -------------------------------------------------------------
-async function getProduct(req, res) {
-    const id      = parseInt(req.params.id, 10);
-    const product = await productService.getProductById(id);
+async function getProduct(req, res, next) {
+    try {
+        const id      = parseInt(req.params.id, 10);
+        const product = await productService.getProductById(id);
 
-    if (!product) {
-        return res.status(404).json({ success: false, error: 'Product not found' });
+        if (!product) {
+            return res.status(404).json({ success: false, error: 'Product not found' });
+        }
+
+        res.json({ success: true, data: product });
+    } catch (err) {
+        next(err);
     }
-
-    res.json({ success: true, data: product });
 }
 
 

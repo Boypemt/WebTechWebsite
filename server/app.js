@@ -60,7 +60,8 @@ app.use(cors(corsOptions));
 // express.json() parses incoming request bodies with Content-Type
 // application/json and makes the result available as req.body.
 // -------------------------------------------------------------
-app.use(express.json());
+// 10kb cap — prevents oversized JSON payloads from exhausting memory
+app.use(express.json({ limit: '10kb' }));
 
 
 // -------------------------------------------------------------
